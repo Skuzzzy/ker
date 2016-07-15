@@ -10,6 +10,7 @@ char buffer[2056] = "hello world I need my money prontohello worldhello! \nYou a
 static struct termios origt, newt;
 
 void cleanup_term_settings(void);
+void clear_screen(void);
 void setup_term_settings(void) {
     if(tcgetattr(STDIN_FILENO, &origt) == -1) {
         printf("Failed to get original terminal settings.");
@@ -29,6 +30,8 @@ void setup_term_settings(void) {
         printf("Failed to set up our terminal settings");
     }
 
+    clear_screen();
+
 }
 
 void cleanup_term_settings(void) {
@@ -39,7 +42,7 @@ void cleanup_term_settings(void) {
     putchar('\n');
 }
 
-void clear_screen() {
+void clear_screen(void) {
     printf("\e[2J");
 }
 
@@ -88,10 +91,11 @@ void update_window_dimensions(void) {
 void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
     clear_screen();
     move_cursor_to(s_x,s_y);
-    int current_y;
+
+    int current_y = s_y;
 
     int width = e_x - s_x;
-    printf("%d", width);
+    /*printf("%d", width);*/
     update_window_dimensions();
 
 
@@ -103,60 +107,32 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
     int break_index = 0;
 
 
-    while(buffer_index < bufferlen) {
+    while(buffer_index < bufferlen && current_y < e_y) {
         while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }
-        int newline_p = (buffer[break_index] == '\n'); //FIXME Should be bool
-        int print_index = ((break_index - buffer_index) > win_dimen.cols) ? buffer_index + win_dimen.cols : break_index;
+        int newline_p = (buffer[break_index] == '\n');
+        int print_index = ((break_index - buffer_index) > width) ? buffer_index + width : break_index;
         /*Replace with proper print*/
-        printf("%d", buffer_index);
-        printf(" %d", print_index);
-        printf(" %d\n", break_index);
+        /*printf("%d", buffer_index);*/
+        /*printf(" %d", print_index);*/
+        /*printf(" %d\n", break_index);*/
         for(int i=buffer_index; i < print_index; i++) {
             putchar(buffer[i]);
         }
-        if(newline_p) {
-            putchar('\n');
-        }
+        /*if(newline_p) {*/
+        /*putchar('\n');*/
+        move_cursor_to(s_x, ++current_y);
+        /*}*/
 
         fflush(stdout);
 
         buffer_index = ++break_index;
     }
 }
-/*void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {*/
-    /*move_cursor_to(s_x,s_y);*/
-    /*update_window_dimensions();*/
 
-    /*clear_screen();*/
-
-    /*int bufferlen = 0;*/
-    /*while(buffer[bufferlen++] != '\0') {}*/
-    /*[>printf("%d", bufferlen);<]*/
-
-    /*int buffer_index = 0;*/
-    /*int break_index = 0;*/
-
-
-    /*while(buffer_index < bufferlen) {*/
-        /*while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }*/
-        /*int newline_p = (buffer[break_index] == '\n'); //FIXME Should be bool*/
-        /*int print_index = ((break_index - buffer_index) > win_dimen.cols) ? buffer_index + win_dimen.cols : break_index;*/
-        /*//Replace with proper print*/
-        /*[>printf("%d", buffer_index);<]*/
-        /*[>printf(" %d", print_index);<]*/
-        /*[>printf(" %d\n", break_index);<]*/
-        /*for(int i=buffer_index; i < print_index; i++) {*/
-            /*putchar(buffer[i]);*/
-        /*}*/
-        /*if(newline_p) {*/
-            /*putchar('\n');*/
-        /*}*/
-
-        /*fflush(stdout);*/
-
-        /*buffer_index = break_index = ++print_index;*/
-    /*}*/
-/*}*/
+long slurp(char const* path, char **buf, int add_nul)
+{
+    FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
+}
 
 int main(void) {
     int c;
@@ -169,12 +145,16 @@ int main(void) {
         /*putchar(c);*/
         /*move_cursor_to(c-'a',c-'a');*/
     /*}*/
+    long  file_size;
+    char *buf;
+
+    file_size = slurp("ker.c", &buf, 0);
 
     /*clear_screen();*/
     update_cursor_pos();
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
     getchar();
-    print_buffer_in_area(buffer, 0, 0, win_dimen.cols, win_dimen.rows);
+    print_buffer_in_area(buf, 0, 0, win_dimen.cols, win_dimen.rows);
     getchar();
 
     return 0;
