@@ -4,10 +4,25 @@
 #include <unistd.h> //STDIN_FILENO
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
 
-char buffer[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";
-/*char buffer[2057] = "dan\nhello\nworld";*/
+int temp_lino = 0;
+char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";
+char asd[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";
 
 static struct termios origt, newt;
+
+typedef struct {
+    int cols;
+    int rows;
+} dimen;
+
+dimen win_dimen;
+
+typedef struct {
+    int x;
+    int y;
+} coords;
+
+coords current_pos;
 
 void cleanup_term_settings(void);
 void clear_screen(void);
@@ -31,7 +46,6 @@ void setup_term_settings(void) {
     }
 
     clear_screen();
-
 }
 
 void cleanup_term_settings(void) {
@@ -44,25 +58,13 @@ void cleanup_term_settings(void) {
 
 void clear_screen(void) {
     printf("\e[2J");
+
 }
 
 void move_cursor_to(int x, int y) {
     printf("\e[%d;%dH", y, x);
 }
 
-typedef struct {
-    int cols;
-    int rows;
-} dimen;
-
-dimen win_dimen;
-
-typedef struct {
-    int x;
-    int y;
-} coords;
-
-coords current_pos;
 
 void update_cursor_pos(void) {
     fseek(stdin,0,SEEK_END); // Clobber stdin so that we can retrieve x and y values
@@ -89,6 +91,7 @@ void update_window_dimensions(void) {
 }
 
 void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
+
     clear_screen();
     move_cursor_to(s_x,s_y);
 
@@ -106,8 +109,9 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
     int buffer_index = 0;
     int break_index = 0;
 
+    int temptemp = temp_lino;
 
-    while(buffer_index < bufferlen && current_y < e_y) {
+    while(buffer_index < bufferlen && current_y <= e_y) {
         while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }
         int newline_p = (buffer[break_index] == '\n');
         int print_index = ((break_index - buffer_index) > width) ? buffer_index + width : break_index;
@@ -115,27 +119,33 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
         /*printf("%d", buffer_index);*/
         /*printf(" %d", print_index);*/
         /*printf(" %d\n", break_index);*/
+        /*printf("%d, %d\n", buffer_index, print_index);*/
+
+        printf("%d|", temptemp++);
+
         for(int i=buffer_index; i < print_index; i++) {
             putchar(buffer[i]);
         }
         /*if(newline_p) {*/
-        /*putchar('\n');*/
-        move_cursor_to(s_x, ++current_y);
+            /*putchar('\n');*/
         /*}*/
+        /*getchar();*/
 
-        fflush(stdout);
-
+        move_cursor_to(s_x, ++current_y);
         buffer_index = ++break_index;
     }
+
+    /*printf("%d, %d", current_y, e_y);*/
+
+    fflush(stdout);
 }
 
 long slurp(char const* path, char **buf, int add_nul)
 {
     FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
 }
-
 int main(void) {
-    int c;
+    char c;
 
     setup_term_settings();
     update_window_dimensions();
@@ -149,13 +159,41 @@ int main(void) {
     char *buf;
 
     file_size = slurp("ker.c", &buf, 0);
+    /*buf = buffer;*/
 
     /*clear_screen();*/
     update_cursor_pos();
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
-    getchar();
-    print_buffer_in_area(buf, 0, 0, win_dimen.cols, win_dimen.rows);
-    getchar();
+    print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);
+
+    int cur_pos = 0;
+    while((c = getchar()) != 0x1b) {
+
+        if(c == 'j') {
+            while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+                cur_pos++;
+            }
+            cur_pos++;
+            temp_lino++;
+        } else if (c == 'k') {
+            cur_pos--;
+            cur_pos--;
+            while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+                cur_pos--;
+            }
+            cur_pos++;
+            temp_lino--;
+        /*} else if (c == 'c') {*/
+            /*clear_screen();*/
+            /*getchar();*/
+        } else {
+            continue;
+        }
+
+
+        char * buffoffset = buf+cur_pos;
+        print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);
+    }
 
     return 0;
 }
