@@ -4,7 +4,7 @@
 #include <unistd.h> //STDIN_FILENO
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
 
-char buffer[2056] = "hello world I need my money prontohello worldhello worldhello worldhello worldhello world\nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde\n Tat Tat tat";
+char buffer[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";
 /*char buffer[2057] = "dan\nhello\nworld";*/
 
 static struct termios origt, newt;
@@ -86,10 +86,14 @@ void update_window_dimensions(void) {
 }
 
 void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
+    clear_screen();
     move_cursor_to(s_x,s_y);
+    int current_y;
+
+    int width = e_x - s_x;
+    printf("%d", width);
     update_window_dimensions();
 
-    clear_screen();
 
     int bufferlen = 0;
     while(buffer[bufferlen++] != '\0') {}
@@ -103,10 +107,10 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
         while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }
         int newline_p = (buffer[break_index] == '\n'); //FIXME Should be bool
         int print_index = ((break_index - buffer_index) > win_dimen.cols) ? buffer_index + win_dimen.cols : break_index;
-        //Replace with proper print
-        /*printf("%d", buffer_index);*/
-        /*printf(" %d", print_index);*/
-        /*printf(" %d\n", break_index);*/
+        /*Replace with proper print*/
+        printf("%d", buffer_index);
+        printf(" %d", print_index);
+        printf(" %d\n", break_index);
         for(int i=buffer_index; i < print_index; i++) {
             putchar(buffer[i]);
         }
@@ -116,14 +120,49 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
 
         fflush(stdout);
 
-        buffer_index = break_index = ++print_index;
+        buffer_index = ++break_index;
     }
 }
+/*void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {*/
+    /*move_cursor_to(s_x,s_y);*/
+    /*update_window_dimensions();*/
+
+    /*clear_screen();*/
+
+    /*int bufferlen = 0;*/
+    /*while(buffer[bufferlen++] != '\0') {}*/
+    /*[>printf("%d", bufferlen);<]*/
+
+    /*int buffer_index = 0;*/
+    /*int break_index = 0;*/
+
+
+    /*while(buffer_index < bufferlen) {*/
+        /*while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }*/
+        /*int newline_p = (buffer[break_index] == '\n'); //FIXME Should be bool*/
+        /*int print_index = ((break_index - buffer_index) > win_dimen.cols) ? buffer_index + win_dimen.cols : break_index;*/
+        /*//Replace with proper print*/
+        /*[>printf("%d", buffer_index);<]*/
+        /*[>printf(" %d", print_index);<]*/
+        /*[>printf(" %d\n", break_index);<]*/
+        /*for(int i=buffer_index; i < print_index; i++) {*/
+            /*putchar(buffer[i]);*/
+        /*}*/
+        /*if(newline_p) {*/
+            /*putchar('\n');*/
+        /*}*/
+
+        /*fflush(stdout);*/
+
+        /*buffer_index = break_index = ++print_index;*/
+    /*}*/
+/*}*/
 
 int main(void) {
     int c;
 
     setup_term_settings();
+    update_window_dimensions();
 
     /*while((c=getchar()) != 0x1b) {*/
         /*clear_screen();*/
@@ -133,7 +172,9 @@ int main(void) {
 
     /*clear_screen();*/
     update_cursor_pos();
-    print_buffer_in_area(buffer, 0, 0, -1, -1);
+    /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
+    getchar();
+    print_buffer_in_area(buffer, 0, 0, win_dimen.cols, win_dimen.rows);
     getchar();
 
     return 0;
