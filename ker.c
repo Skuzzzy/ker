@@ -35,12 +35,8 @@ void setup_term_settings(void) {
     /*now the settings will be copied*/
     newt = origt;
 
-    /*ICANON normally takes care that one line at a time will be processed
-     *     that means it will return if it sees a "\n" or an EOF or an EOL*/
-    newt.c_lflag &= ~(ICANON | ECHO); // FIXME ECHO
+    newt.c_lflag &= ~(ICANON | ECHO);
 
-    /*Those new settings will be set to STDIN
-     *     TCSANOW tells tcsetattr to change attributes immediately. */
     if(tcsetattr( STDIN_FILENO, TCSANOW, &newt) == -1) {
         printf("Failed to set up our terminal settings");
     }
