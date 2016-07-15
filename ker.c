@@ -88,12 +88,11 @@ void update_window_dimensions(void) {
 
 void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
 
-    clear_screen();
     move_cursor_to(s_x,s_y);
 
     int current_y = s_y;
 
-    int width = e_x - s_x;
+    int width = e_x - s_x - 4; // FIXME REMOVE 4, CURRENTLY THERE JUST BECAUSE I DONT ACCOUNT FOR LINE NUMBERS
     /*printf("%d", width);*/
     update_window_dimensions();
 
@@ -163,6 +162,14 @@ int main(void) {
     print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);
 
     int cur_pos = 0;
+    int cur_pos2 = 0;
+    for(int i=0; i<win_dimen.rows; i++) {
+        while(buf[cur_pos2] != '\n' && buf[cur_pos2] != '\0') {
+            cur_pos2++;
+        }
+        cur_pos2++;
+    }
+
     while((c = getchar()) != 0x1b) {
 
         if(c == 'j') {
@@ -170,15 +177,61 @@ int main(void) {
                 cur_pos++;
             }
             cur_pos++;
+
+            while(buf[cur_pos2] != '\n' && buf[cur_pos2] != '\0') {
+            cur_pos2++;
+            }
+            cur_pos2++;
             temp_lino++;
         } else if (c == 'k') {
+            if(temp_lino <= 0) {continue;}
+
             cur_pos--;
             cur_pos--;
             while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
                 cur_pos--;
             }
             cur_pos++;
+            cur_pos2--;
+            cur_pos2--;
+            while(buf[cur_pos2] != '\n' && buf[cur_pos2] != '\0') {
+            cur_pos2--;
+            }
+            cur_pos2++;
+
             temp_lino--;
+        } else if (c == 'K') {
+            if(temp_lino <= 0) {continue;}
+            for(int i=0; i<5; i++) {
+                cur_pos--;
+                cur_pos--;
+                while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+                    cur_pos--;
+                }
+                cur_pos++;
+                cur_pos2--;
+                cur_pos2--;
+                while(buf[cur_pos2] != '\n' && buf[cur_pos2] != '\0') {
+                cur_pos2--;
+                }
+                cur_pos2++;
+
+                temp_lino--;
+            }
+        }
+            else if(c == 'J') {
+            for(int i=0; i<5; i++) {
+            while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+                cur_pos++;
+            }
+            cur_pos++;
+
+            while(buf[cur_pos2] != '\n' && buf[cur_pos2] != '\0') {
+            cur_pos2++;
+            }
+            cur_pos2++;
+            temp_lino++;
+            }
         /*} else if (c == 'c') {*/
             /*clear_screen();*/
             /*getchar();*/
@@ -188,7 +241,13 @@ int main(void) {
 
 
         char * buffoffset = buf+cur_pos;
-        print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);
+        char * buffoffset2 = buf+cur_pos2;
+        /*print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);*/
+        clear_screen();
+        print_buffer_in_area(buffoffset, 1, 1, 70, win_dimen.rows);
+        temp_lino += win_dimen.rows;
+        print_buffer_in_area(buffoffset2, 72, 1, win_dimen.cols, win_dimen.rows);
+        temp_lino -= win_dimen.rows;
     }
 
     return 0;
