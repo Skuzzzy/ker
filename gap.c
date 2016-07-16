@@ -84,15 +84,27 @@ void gbuff_del(gbuff* gbuffer) {
     }
 }
 
-void gbuff_SL(gbuff* gbuffer) {
-    if(gbuffer->gap_start != 0) {
-        gbuffer->buffer[--gbuffer->gap_end] = gbuffer->buffer[--gbuffer->gap_start];
+
+// FIXME use memmove for these as well
+void gbuff_SL(gbuff* gbuffer, int repetitions) {
+    for(int counter=0; counter < repetitions; counter++) {
+        if(gbuffer->gap_start != 0) {
+            gbuffer->buffer[--gbuffer->gap_end] = gbuffer->buffer[--gbuffer->gap_start];
+        }
+        else {
+            break;
+        }
     }
 }
 
-void gbuff_SR(gbuff* gbuffer) {
-    if(gbuffer->gap_end < gbuffer->bufsize) {
-        gbuffer->buffer[gbuffer->gap_start++] = gbuffer->buffer[gbuffer->gap_end++];
+void gbuff_SR(gbuff* gbuffer, int repetitions) {
+    for(int counter=0; counter < repetitions; counter++) {
+        if(gbuffer->gap_end < gbuffer->bufsize) {
+            gbuffer->buffer[gbuffer->gap_start++] = gbuffer->buffer[gbuffer->gap_end++];
+        }
+        else {
+            break;
+        }
     }
 }
 
@@ -104,7 +116,7 @@ void gbuff_free(gbuff* gbuffer) {
 
 int main() {
     char buffer[1024] = "Hello World this is a buffer of characters";
-    gbuff * text = gbuff_alloc(5);
+    gbuff * text = gbuff_alloc(25);
     gbuff_init(text, buffer);
     /*gbuff_print(text);*/
     /*gbuff_SR(text);*/
@@ -122,13 +134,13 @@ int main() {
 
     char c;
     while((c=getchar()) != '\e') {
-        getchar();
-        if(c=='d') {
+        if(c=='\'') {
             gbuff_del(text);
         } else if (c == '<') {
-            gbuff_SL(text);
+            gbuff_SL(text,3);
         } else if (c == '>') {
-            gbuff_SR(text);
+            gbuff_SR(text,3);
+        } else if (c == '\n') {
         } else {
             gbuff_ins(text, c);
         }
