@@ -58,20 +58,42 @@ void gbuff_print(gbuff* gbuffer) {
     putchar('\n');
 }
 
+
+void gbuff_expand(gbuff* gbuffer) {
+    realloc(gbuffer->buffer, gbuffer->bufsize + gbuffer->goal_gap_size);
+    /*strcpy(gbuffer->buffer+gbuffer->gap_end*/
+    memmove(
+            gbuffer->buffer+gbuffer->gap_end+gbuffer->goal_gap_size,
+            gbuffer->buffer+gbuffer->gap_end,
+            gbuffer->bufsize - gbuffer->gap_end
+            );
+    gbuffer->bufsize = gbuffer->bufsize + gbuffer->goal_gap_size;
+    gbuffer->gap_end += gbuffer->goal_gap_size;
+}
+
 void gbuff_ins(gbuff* gbuffer, char c) {
     gbuffer->buffer[gbuffer->gap_start++] = c;
+    if(gbuffer->gap_start == gbuffer->gap_end) {
+        gbuff_expand(gbuffer);
+    }
 }
 
 void gbuff_del(gbuff* gbuffer) {
-    gbuffer->gap_start--;
+    if(gbuffer->gap_start != 0) {
+        gbuffer->gap_start--;
+    }
 }
 
 void gbuff_SL(gbuff* gbuffer) {
-    gbuffer->buffer[--gbuffer->gap_end] = gbuffer->buffer[--gbuffer->gap_start];
+    if(gbuffer->gap_start != 0) {
+        gbuffer->buffer[--gbuffer->gap_end] = gbuffer->buffer[--gbuffer->gap_start];
+    }
 }
 
 void gbuff_SR(gbuff* gbuffer) {
-    gbuffer->buffer[gbuffer->gap_start++] = gbuffer->buffer[gbuffer->gap_end++];
+    if(gbuffer->gap_end < gbuffer->bufsize) {
+        gbuffer->buffer[gbuffer->gap_start++] = gbuffer->buffer[gbuffer->gap_end++];
+    }
 }
 
 void gbuff_free(gbuff* gbuffer) {
@@ -84,28 +106,35 @@ int main() {
     char buffer[1024] = "Hello World this is a buffer of characters";
     gbuff * text = gbuff_alloc(5);
     gbuff_init(text, buffer);
-    gbuff_print(text);
-    gbuff_SR(text);
-    gbuff_SR(text);
-    gbuff_SR(text);
-    gbuff_SR(text);
-    gbuff_print(text);
-    gbuff_del(text);
-    gbuff_print(text);
-    gbuff_del(text);
-    gbuff_print(text);
-    gbuff_ins(text, '!');
-    gbuff_print(text);
-    gbuff_ins(text, '?');
-    gbuff_print(text);
+    /*gbuff_print(text);*/
+    /*gbuff_SR(text);*/
+    /*gbuff_SR(text);*/
+    /*gbuff_SR(text);*/
+    /*gbuff_SR(text);*/
+    /*gbuff_print(text);*/
+    /*gbuff_del(text);*/
+    /*gbuff_print(text);*/
+    /*gbuff_del(text);*/
+    /*gbuff_print(text);*/
+    /*gbuff_ins(text, '!');*/
+    /*gbuff_print(text);*/
+    /*gbuff_ins(text, '?');*/
 
-    /*char c;*/
-    /*while((c=getchar()) != 'e') {*/
-        /*if(c=='d') {*/
-            /*gbuff_backspace(text);*/
-        /*}*/
+    char c;
+    while((c=getchar()) != '\e') {
+        getchar();
+        if(c=='d') {
+            gbuff_del(text);
+        } else if (c == '<') {
+            gbuff_SL(text);
+        } else if (c == '>') {
+            gbuff_SR(text);
+        } else {
+            gbuff_ins(text, c);
+        }
 
-    /*}*/
+        gbuff_print(text);
+    }
 
     gbuff_free(text);
 
