@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 typedef struct {
     char * buffer;
@@ -84,8 +86,12 @@ void gbuff_del(gbuff* gbuffer) {
     }
 }
 
+/*int _gbuff_shift_modifier(gbuff* gbuffer*/
 
-// FIXME use memmove for these as well
+int gbuff_gap_size(gbuff* gbuffer) {
+    return gbuffer->gap_end - gbuffer->gap_start;
+}
+
 void gbuff_SL(gbuff* gbuffer, int repetitions) {
     for(int counter=0; counter < repetitions; counter++) {
         if(gbuffer->gap_start != 0) {
@@ -114,32 +120,54 @@ void gbuff_free(gbuff* gbuffer) {
 }
 
 
+void gbuff_shift(gbuff* gbuffer, int shift_offset) {
+    if(shift_offset == 0) {
+        return;
+    }
+    else if (shift_offset > 0) {
+        // FIXME Not sure which is faster
+        /*gbuff_SR(gbuffer, shift_offset);*/
+
+        shift_offset = MIN(shift_offset, gbuffer->bufsize - gbuffer->gap_end);
+        memmove(
+                gbuffer->buffer + gbuffer->gap_start,
+                gbuffer->buffer + gbuffer->gap_end,
+                shift_offset
+                );
+        gbuffer->gap_start += shift_offset;
+        gbuffer->gap_end += shift_offset;
+
+    }
+    else if (shift_offset < 0) {
+        // FIXME Not sure which is faster
+        /*gbuff_SL(gbuffer, -shift_offset);*/
+        shift_offset = MIN(-shift_offset, gbuffer->gap_start);
+        memmove(
+                gbuffer->buffer + gbuffer->gap_end - shift_offset,
+                gbuffer->buffer + gbuffer->gap_start - shift_offset,
+                shift_offset
+                );
+        gbuffer->gap_start -= shift_offset;
+        gbuffer->gap_end -= shift_offset;
+    }
+}
+
 int main() {
     char buffer[1024] = "Hello World this is a buffer of characters";
     gbuff * text = gbuff_alloc(25);
     gbuff_init(text, buffer);
-    /*gbuff_print(text);*/
-    /*gbuff_SR(text);*/
-    /*gbuff_SR(text);*/
-    /*gbuff_SR(text);*/
-    /*gbuff_SR(text);*/
-    /*gbuff_print(text);*/
-    /*gbuff_del(text);*/
-    /*gbuff_print(text);*/
-    /*gbuff_del(text);*/
-    /*gbuff_print(text);*/
-    /*gbuff_ins(text, '!');*/
-    /*gbuff_print(text);*/
-    /*gbuff_ins(text, '?');*/
 
     char c;
+    gbuff_print(text);
     while((c=getchar()) != '\e') {
         if(c=='\'') {
             gbuff_del(text);
         } else if (c == '<') {
-            gbuff_SL(text,3);
+            /*gbuff_SL(text,3);*/
+            gbuff_shift(text,-3);
         } else if (c == '>') {
-            gbuff_SR(text,3);
+            /*gbuff_SR(text,3);*/
+            gbuff_shift(text,5);
         } else if (c == '\n') {
         } else {
             gbuff_ins(text, c);
