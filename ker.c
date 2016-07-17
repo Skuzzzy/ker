@@ -191,7 +191,7 @@ int main(void) {
         } else if (c == 3 || c == 24) { // CTRL C / CTRL X
             break;
         } else if (c == 19) { // CTRL S
-            gctl_write_to_file(gcontrol, "/tmp/textfile");
+            gctl_write_to_file(gcontrol, "/tmp/textfile.c");
         } else if (c == 127) {
             gctl_del(gcontrol);
         } else if (c == 27) {
