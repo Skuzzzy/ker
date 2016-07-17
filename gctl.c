@@ -6,6 +6,8 @@ typedef struct {
     int col;
     int row;
     int index;
+
+    int draw_offset;
 } gctl;
 
 char gctl_dref(gctl* gcontrol, int index);
@@ -20,6 +22,7 @@ gctl* gctl_alloc(char* buffer) {
     gcontrol->row = 0;
     gcontrol->col = 0;
     gcontrol->index = 0;
+    gcontrol->draw_offset = 0;
     gcontrol->goal_col = gcontrol->col;
     return gcontrol;
 }
@@ -48,11 +51,11 @@ void gctl_right(gctl* gcontrol) {
 }
 
 void gctl_discover_col(gctl* gcontrol) {
-    int new_col = 0;
-    while(gctl_dref(gcontrol, gcontrol->index) - new_col - 1 > 0 && gctl_dref(gcontrol, gcontrol->index - new_col - 1) != '\n') { // FIXME -1
+    int new_col = 1;
+    while(gcontrol->index - new_col > 0 && gctl_dref(gcontrol, gcontrol->index - new_col) != '\n') {
         new_col++;
     }
-    gcontrol->col = new_col;
+    gcontrol->col = new_col - 1;
 }
 
 void gctl_left(gctl* gcontrol) {
@@ -74,16 +77,31 @@ void gctl_left(gctl* gcontrol) {
 
 void gctl_up(gctl* gcontrol) {
     int orig_row = gcontrol->row;
+    int goal_col = gcontrol->goal_col;
     while (gcontrol->row != 0 && gcontrol->row == orig_row) {
         gctl_left(gcontrol);
     }
+
+    // Now attempt to move cursor to goal_col
+    while(goal_col < gcontrol->col) {
+        gctl_left(gcontrol);
+    }
+    gcontrol->goal_col = goal_col;
 }
 
 void gctl_down(gctl* gcontrol) {
     int orig_row = gcontrol->row;
+    int goal_col = gcontrol->goal_col;
     while (1 && gcontrol->row == orig_row) { // FIXME Check to make sure we do not go down on the last row
         gctl_right(gcontrol);
     }
+
+    // Now attempt to move cursor to goal_col
+    // FIXME there should be a cur_col_len field
+    while(gctl_dref(gcontrol, gcontrol->index) != '\n' && gcontrol->col < goal_col) {
+        gctl_right(gcontrol);
+    }
+    gcontrol->goal_col = goal_col;
 }
 void gctl_ins(gctl* gcontrol, char c) {
     if (c == '\n') {
@@ -115,6 +133,33 @@ void gctl_del(gctl* gcontrol) {
 
     gcontrol->goal_col = gcontrol->col;
     gbuff_del(gcontrol->gbuffer);
+
+}
+
+void gctl_shift_draw_line(gctl* gcontrol, int amount) {
+    if(amount > 0) {
+        //FIXME check to make sure we do not overrun the bottom
+        for(int repetition = 0; repetition < amount; repetition++) {
+            while((gctl_dref(gcontrol, gcontrol->draw_offset) != '\n')) {
+                gcontrol->draw_offset++;
+            }
+            gcontrol->draw_offset++;
+        }
+    }
+    else if (amount < 0) {
+        amount = -amount;
+        for(int repetition = 0; repetition < amount; repetition++) {
+            if(gcontrol->draw_offset > 0) {
+                gcontrol->draw_offset--; // Move back into the \n
+                while(gcontrol->draw_offset > 0 && gctl_dref(gcontrol, gcontrol->draw_offset - 1) != '\n') {
+                    gcontrol->draw_offset--;
+                }
+            }
+            else {
+                break;
+            }
+        }
+    }
 
 }
 

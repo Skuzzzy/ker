@@ -139,9 +139,6 @@ long slurp(char const* path, char **buf, int add_nul)
     FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
 }
 
-
-
-
 int main(void) {
     char c;
 
@@ -188,22 +185,11 @@ int main(void) {
     int cur_pos = 0;
     while((c = getchar()) != '`') {
 
-        if (0) {
-        /*if(c == 'J') {*/
-            /*while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {*/
-                /*cur_pos++;*/
-            /*}*/
-            /*cur_pos++;*/
-            /*temp_lino++;*/
-        /*} else if (c == 'K') {*/
-            /*cur_pos--;*/
-            /*cur_pos--;*/
-            /*[>[>while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {<]<]*/
-            /*while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {*/
-                /*cur_pos--;*/
-            /*}*/
-            /*cur_pos++;*/
-            /*temp_lino--;*/
+        /*if (0) {*/
+        if(c == 'J') {
+            gctl_shift_draw_line(gcontrol, 1);
+        } else if (c == 'K') {
+            gctl_shift_draw_line(gcontrol, -1);
         } else if (c == 127) {
             gctl_del(gcontrol);
         } else if (c == 27) {
@@ -239,7 +225,7 @@ int main(void) {
         /*[>char * buffoffset = buf+cur_pos;<]*/
         /*[>print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);<]*/
         /*print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);*/
-        print_gcontrol_area(gcontrol, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
+        print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols, win_dimen.rows);
         /*[>printf("%d", c);<]*/
     }
 
