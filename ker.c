@@ -6,9 +6,8 @@
 /*#include "gap.c"*/
 #include "gctl.c"
 
-int temp_lino = 0;
 /*char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";*/
-char asd[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";
+/*char asd[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";*/
 
 static struct termios origt, newt;
 
