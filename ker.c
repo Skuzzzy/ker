@@ -33,9 +33,8 @@ void setup_term_settings(void) {
         exit(-1);
     }
     atexit(cleanup_term_settings);
-    /*now the settings will be copied*/
-    newt = origt;
 
+    newt = origt;
     newt.c_lflag &= ~(ICANON | ECHO);
 
     if(tcsetattr( STDIN_FILENO, TCSANOW, &newt) == -1) {
@@ -208,6 +207,49 @@ void print_gapbuffer_in_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e
     fflush(stdout);
 }
 
+// FIXME IMPROVED
+void print_gapbuffer_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {
+
+    clear_screen();
+    move_cursor_to(s_x,s_y);
+
+    int current_y = s_y;
+
+    int width = e_x - s_x;
+    update_window_dimensions();
+
+    int buffer_index = 0;
+    int break_index = 0;
+
+    while(buffer_index < gbuffer->bufsize && current_y <= e_y) {
+        while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') ||
+               gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }
+
+        int expendable_chars = width;
+
+        for(int i=buffer_index; i < break_index; i++) {
+            if(i==gbuffer->gap_end) {
+                push_cursor_pos();
+            }
+            /*if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }*/
+            if(gbuff_within_gap(gbuffer, i+offset)) { continue; }
+            if(expendable_chars <= 0) { break; }
+            putchar(gbuffer->buffer[i+offset]);
+            expendable_chars--;
+        }
+        if(break_index==gbuffer->gap_end) {
+            push_cursor_pos();
+        }
+
+        move_cursor_to(s_x, ++current_y);
+        buffer_index = ++break_index;
+    }
+
+    pop_cursor_pos();
+
+    fflush(stdout);
+}
+
 long slurp(char const* path, char **buf, int add_nul)
 {
     FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
@@ -299,7 +341,7 @@ int main(void) {
 
         /*char * buffoffset = buf+cur_pos;*/
         /*print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);*/
-        print_gapbuffer_in_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
+        print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
         /*printf("%d", c);*/
     }
 

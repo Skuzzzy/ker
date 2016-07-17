@@ -16,12 +16,6 @@ typedef struct {
 gbuff* gbuff_alloc(int gapsize) {
     gbuff * gapbuffer = calloc(1, sizeof(gbuff));
     gapbuffer->goal_gap_size = gapsize;
-    /*gbuff.gap_start = 0;*/
-    /*gbuff.gap_end = 0;*/
-    /*gbuff.size_before_gap = strlen(buffer)+1;*/
-    /*gbuff.reserved_size = gbuff.size_before_gap * 2;*/
-    /*gbuff.buffer = calloc(gbuff.reserved_size, sizeof(char))*/
-
     return gapbuffer;
 }
 
@@ -176,34 +170,34 @@ void gbuff_shift(gbuff* gbuffer, int shift_offset) {
     }
 }
 
-int main() {
-    char buffer[1024] = "Hello";
-    gbuff * text = gbuff_alloc(25);
-    gbuff_init(text, buffer);
+/*int main() {*/
+    /*char buffer[1024] = "Hello";*/
+    /*gbuff * text = gbuff_alloc(25);*/
+    /*gbuff_init(text, buffer);*/
 
-    char c;
-    gbuff_print(text);
-    while((c=getchar()) != '\e') {
-        if(c=='\'') {
-            gbuff_del(text);
-        } else if (c == '<') {
-            /*gbuff_SL(text,3);*/
-            gbuff_shift(text,-3);
-        } else if (c == '>') {
-            /*gbuff_SR(text,3);*/
-            gbuff_shift(text,5);
-        } else if (c == '1') {
-            printf("YOLO");
-            gbuff_write_to_file(text, "/tmp/test.txt");
-        } else if (c == '\n') {
-        } else {
-            gbuff_ins(text, c);
-        }
+    /*char c;*/
+    /*gbuff_print(text);*/
+    /*while((c=getchar()) != '\e') {*/
+        /*if(c=='\'') {*/
+            /*gbuff_del(text);*/
+        /*} else if (c == '<') {*/
+            /*[>gbuff_SL(text,3);<]*/
+            /*gbuff_shift(text,-3);*/
+        /*} else if (c == '>') {*/
+            /*[>gbuff_SR(text,3);<]*/
+            /*gbuff_shift(text,5);*/
+        /*} else if (c == '1') {*/
+            /*printf("YOLO");*/
+            /*gbuff_write_to_file(text, "/tmp/test.txt");*/
+        /*} else if (c == '\n') {*/
+        /*} else {*/
+            /*gbuff_ins(text, c);*/
+        /*}*/
 
-        gbuff_print(text);
-    }
+        /*gbuff_print(text);*/
+    /*}*/
 
-    gbuff_free(text);
+    /*gbuff_free(text);*/
 
 
-}
+/*}*/
