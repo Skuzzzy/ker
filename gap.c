@@ -87,7 +87,16 @@ void gbuff_print(gbuff* gbuffer) {
 
 
 void gbuff_expand(gbuff* gbuffer) {
-    gbuffer->buffer = realloc(gbuffer->buffer, gbuffer->bufsize + gbuffer->goal_gap_size);
+    char* tmp_buffer = realloc(gbuffer->buffer, gbuffer->bufsize + gbuffer->goal_gap_size);
+    if (tmp_buffer == NULL)
+    {
+        // OH SHIT ABORT ABORT, (Save user file and gtfo)
+        // FIXME
+    }
+    else
+    {
+        gbuffer->buffer = tmp_buffer;
+    }
     memmove(
             gbuffer->buffer+gbuffer->gap_end+gbuffer->goal_gap_size,
             gbuffer->buffer+gbuffer->gap_end,
