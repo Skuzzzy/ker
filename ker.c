@@ -3,7 +3,8 @@
 #include <termios.h> //termios, TCSANOW, ECHO, ICANON
 #include <unistd.h> //STDIN_FILENO
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
-#include "gap.c"
+/*#include "gap.c"*/
+#include "gctl.c"
 
 int temp_lino = 0;
 /*char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";*/
@@ -93,122 +94,164 @@ void update_window_dimensions(void) {
     /*printf ("columns %d\n", dimens.ws_col);*/
 }
 
-void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
+/*void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {*/
 
-    clear_screen();
-    move_cursor_to(s_x,s_y);
+    /*clear_screen();*/
+    /*move_cursor_to(s_x,s_y);*/
 
-    int current_y = s_y;
+    /*int current_y = s_y;*/
 
-    int width = e_x - s_x;
-    /*printf("%d", width);*/
-    update_window_dimensions();
-
-
-    int bufferlen = 0;
-    while(buffer[bufferlen++] != '\0') {}
-    /*printf("%d", bufferlen);*/
-
-    int buffer_index = 0;
-    int break_index = 0;
-
-    int temptemp = temp_lino;
-
-    while(buffer_index < bufferlen && current_y <= e_y) {
-        while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }
-        int newline_p = (buffer[break_index] == '\n');
-        int print_index = ((break_index - buffer_index) > width) ? buffer_index + width : break_index;
-        /*Replace with proper print*/
-        /*printf("%d", buffer_index);*/
-        /*printf(" %d", print_index);*/
-        /*printf(" %d\n", break_index);*/
-        /*printf("%d, %d\n", buffer_index, print_index);*/
-
-        printf("%d|", temptemp++);
-
-        for(int i=buffer_index; i < print_index; i++) {
-            putchar(buffer[i]);
-        }
-        /*if(newline_p) {*/
-            /*putchar('\n');*/
-        /*}*/
-        /*getchar();*/
-
-        move_cursor_to(s_x, ++current_y);
-        buffer_index = ++break_index;
-    }
-
-    /*printf("%d, %d", current_y, e_y);*/
-
-    fflush(stdout);
-}
-
-void print_gapbuffer_in_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {
-
-    clear_screen();
-    move_cursor_to(s_x,s_y);
-
-    int current_y = s_y;
-
-    int width = e_x - s_x;
-    /*printf("%d", width);*/
-    update_window_dimensions();
+    /*int width = e_x - s_x;*/
+    /*[>printf("%d", width);<]*/
+    /*update_window_dimensions();*/
 
 
     /*int bufferlen = 0;*/
     /*while(buffer[bufferlen++] != '\0') {}*/
-    /*printf("%d", bufferlen);*/
+    /*[>printf("%d", bufferlen);<]*/
 
-    int buffer_index = 0;
-    int break_index = 0;
+    /*int buffer_index = 0;*/
+    /*int break_index = 0;*/
 
-    int temptemp = temp_lino;
+    /*int temptemp = temp_lino;*/
 
-    while(buffer_index < gbuffer->bufsize && current_y <= e_y) {
-        while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') || gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }
+    /*while(buffer_index < bufferlen && current_y <= e_y) {*/
+        /*while(buffer[break_index] != '\n' && buffer[break_index] != '\0') { break_index++; }*/
         /*int newline_p = (buffer[break_index] == '\n');*/
-        /*Replace with proper print*/
-        /*printf("%d", buffer_index);*/
-        /*printf(" %d", print_index);*/
-        /*printf(" %d\n", break_index);*/
-        /*printf("%d, %d\n", buffer_index, print_index);*/
+        /*int print_index = ((break_index - buffer_index) > width) ? buffer_index + width : break_index;*/
+        /*[>Replace with proper print<]*/
+        /*[>printf("%d", buffer_index);<]*/
+        /*[>printf(" %d", print_index);<]*/
+        /*[>printf(" %d\n", break_index);<]*/
+        /*[>printf("%d, %d\n", buffer_index, print_index);<]*/
 
-        int expendable_chars = width;
+        /*printf("%d|", temptemp++);*/
 
-        printf("%d|", temptemp++);
-        expendable_chars -= 4;
-
-        for(int i=buffer_index; i < break_index; i++) {
-            if(i==gbuffer->gap_end) {
-                push_cursor_pos();
-            }
-            if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }
-            /*if(gbuff_within_gap(gbuffer, i+offset)) { continue; }*/
-            if(expendable_chars <= 0) { break; }
-            putchar(gbuffer->buffer[i+offset]);
-            expendable_chars--;
-        }
-        if(break_index==gbuffer->gap_end) {
-            push_cursor_pos();
-        }
-        /*if(newline_p) {*/
-            /*putchar('\n');*/
+        /*for(int i=buffer_index; i < print_index; i++) {*/
+            /*putchar(buffer[i]);*/
         /*}*/
-        /*getchar();*/
+        /*[>if(newline_p) {<]*/
+            /*[>putchar('\n');<]*/
+        /*[>}<]*/
+        /*[>getchar();<]*/
 
-        move_cursor_to(s_x, ++current_y);
-        buffer_index = ++break_index;
-    }
+        /*move_cursor_to(s_x, ++current_y);*/
+        /*buffer_index = ++break_index;*/
+    /*}*/
 
-    /*printf("%d, %d", current_y, e_y);*/
+    /*[>printf("%d, %d", current_y, e_y);<]*/
 
-    pop_cursor_pos();
+    /*fflush(stdout);*/
+/*}*/
 
-    fflush(stdout);
-}
+/*void print_gapbuffer_in_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {*/
+
+    /*clear_screen();*/
+    /*move_cursor_to(s_x,s_y);*/
+
+    /*int current_y = s_y;*/
+
+    /*int width = e_x - s_x;*/
+    /*[>printf("%d", width);<]*/
+    /*update_window_dimensions();*/
+
+
+    /*[>int bufferlen = 0;<]*/
+    /*[>while(buffer[bufferlen++] != '\0') {}<]*/
+    /*[>printf("%d", bufferlen);<]*/
+
+    /*int buffer_index = 0;*/
+    /*int break_index = 0;*/
+
+    /*int temptemp = temp_lino;*/
+
+    /*while(buffer_index < gbuffer->bufsize && current_y <= e_y) {*/
+        /*while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') || gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }*/
+        /*[>int newline_p = (buffer[break_index] == '\n');<]*/
+        /*[>Replace with proper print<]*/
+        /*[>printf("%d", buffer_index);<]*/
+        /*[>printf(" %d", print_index);<]*/
+        /*[>printf(" %d\n", break_index);<]*/
+        /*[>printf("%d, %d\n", buffer_index, print_index);<]*/
+
+        /*int expendable_chars = width;*/
+
+        /*printf("%d|", temptemp++);*/
+        /*expendable_chars -= 4;*/
+
+        /*for(int i=buffer_index; i < break_index; i++) {*/
+            /*if(i==gbuffer->gap_end) {*/
+                /*push_cursor_pos();*/
+            /*}*/
+            /*if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }*/
+            /*[>if(gbuff_within_gap(gbuffer, i+offset)) { continue; }<]*/
+            /*if(expendable_chars <= 0) { break; }*/
+            /*putchar(gbuffer->buffer[i+offset]);*/
+            /*expendable_chars--;*/
+        /*}*/
+        /*if(break_index==gbuffer->gap_end) {*/
+            /*push_cursor_pos();*/
+        /*}*/
+        /*[>if(newline_p) {<]*/
+            /*[>putchar('\n');<]*/
+        /*[>}<]*/
+        /*[>getchar();<]*/
+
+        /*move_cursor_to(s_x, ++current_y);*/
+        /*buffer_index = ++break_index;*/
+    /*}*/
+
+    /*[>printf("%d, %d", current_y, e_y);<]*/
+
+    /*pop_cursor_pos();*/
+
+    /*fflush(stdout);*/
+/*}*/
 
 // FIXME IMPROVED
-void print_gapbuffer_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {
+/*void print_gapbuffer_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {*/
+
+    /*clear_screen();*/
+    /*move_cursor_to(s_x,s_y);*/
+
+    /*int current_y = s_y;*/
+
+    /*int width = e_x - s_x;*/
+    /*update_window_dimensions();*/
+
+    /*int buffer_index = 0;*/
+    /*int break_index = 0;*/
+
+    /*while(buffer_index < gbuffer->bufsize && current_y <= e_y) {*/
+        /*while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') ||*/
+               /*gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }*/
+
+        /*int expendable_chars = width;*/
+
+        /*for(int i=buffer_index; i < break_index; i++) {*/
+            /*if(i==gbuffer->gap_end) {*/
+                /*push_cursor_pos();*/
+            /*}*/
+            /*[>if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }<]*/
+            /*if(gbuff_within_gap(gbuffer, i+offset)) { continue; }*/
+            /*if(expendable_chars <= 0) { break; }*/
+            /*putchar(gbuffer->buffer[i+offset]);*/
+            /*expendable_chars--;*/
+        /*}*/
+        /*if(break_index==gbuffer->gap_end) {*/
+            /*push_cursor_pos();*/
+        /*}*/
+
+        /*move_cursor_to(s_x, ++current_y);*/
+        /*buffer_index = ++break_index;*/
+    /*}*/
+
+    /*pop_cursor_pos();*/
+
+    /*fflush(stdout);*/
+/*}*/
+
+void print_gcontrol_area(gctl* gcontrol, int offset, int s_x, int s_y, int e_x, int e_y) {
 
     clear_screen();
     move_cursor_to(s_x,s_y);
@@ -216,30 +259,29 @@ void print_gapbuffer_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x,
     int current_y = s_y;
 
     int width = e_x - s_x;
-    update_window_dimensions();
+    update_window_dimensions(); // FIXME do we use this?
 
-    int buffer_index = 0;
-    int break_index = 0;
+    int buffer_index = offset;
+    int break_index = buffer_index;
 
-    while(buffer_index < gbuffer->bufsize && current_y <= e_y) {
-        while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') ||
-               gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }
+    while(buffer_index < gctl_size(gcontrol) && current_y <= e_y) {
+        while(gctl_dref(gcontrol, break_index)  != '\n' && gctl_dref(gcontrol, break_index) != '\0') { break_index++; }
 
         int expendable_chars = width;
 
-        for(int i=buffer_index; i < break_index; i++) {
-            if(i==gbuffer->gap_end) {
+        while(buffer_index < break_index) {
+            if(buffer_index == gcontrol->index) {
                 push_cursor_pos();
             }
-            /*if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }*/
-            if(gbuff_within_gap(gbuffer, i+offset)) { continue; }
             if(expendable_chars <= 0) { break; }
-            putchar(gbuffer->buffer[i+offset]);
+            putchar(gctl_dref(gcontrol, buffer_index));
             expendable_chars--;
+            buffer_index++;
         }
-        if(break_index==gbuffer->gap_end) {
+        if(buffer_index == gcontrol->index) {
             push_cursor_pos();
         }
+
 
         move_cursor_to(s_x, ++current_y);
         buffer_index = ++break_index;
@@ -249,6 +291,7 @@ void print_gapbuffer_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x,
 
     fflush(stdout);
 }
+
 
 long slurp(char const* path, char **buf, int add_nul)
 {
@@ -265,6 +308,18 @@ int main(void) {
     update_window_dimensions();
 
 
+    /*c = getchar();*/
+    /*printf("%d\n", (int)c);*/
+    /*fflush(stdout);*/
+    /*c = getchar();*/
+    /*printf("%d\n", (int)c);*/
+    /*fflush(stdout);*/
+    /*c = getchar();*/
+    /*printf("%d\n", (int)c);*/
+    /*fflush(stdout);*/
+    /*c = getchar();*/
+    /*printf("%d\n", (int)c);*/
+    /*fflush(stdout);*/
 
     /*while((c=getchar()) != 0x1b) {*/
         /*clear_screen();*/
@@ -276,44 +331,40 @@ int main(void) {
 
     file_size = slurp("ker.c", &buf, 0);
 
-    gbuff * text = gbuff_alloc(25);
-    gbuff_init(text, buf);
+    /*gbuff * text = gbuff_alloc(25);*/
+    /*gbuff_init(text, buf);*/
+    gctl* gcontrol = gctl_alloc(buf);
     /*gbuff_shift(text, 10);*/
     /*buf = buffer;*/
 
     /*clear_screen();*/
-    update_cursor_pos();
+    /*update_cursor_pos();*/
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
     /*print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);*/
-    print_gapbuffer_in_area(text, 0, 1, 1, win_dimen.cols, win_dimen.rows);
+
+    print_gcontrol_area(gcontrol, 0, 1, 1, win_dimen.cols, win_dimen.rows);
+
     int cur_pos = 0;
     while((c = getchar()) != '`') {
 
-        if(c == 'J') {
-            while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {
-                cur_pos++;
-            }
-            cur_pos++;
-            temp_lino++;
-        } else if (c == 'K') {
-            cur_pos--;
-            cur_pos--;
-            /*while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {*/
-            while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {
-                cur_pos--;
-            }
-            cur_pos++;
-            temp_lino--;
-        /*} else if (c == 'c') {*/
-            /*clear_screen();*/
-            /*getchar();*/
-        } else if(c == 68) {
-            gbuff_shift(text, -1);
-        } else if(c == 67) {
-            gbuff_shift(text, 1);
+        if (0) {
+        /*if(c == 'J') {*/
+            /*while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {*/
+                /*cur_pos++;*/
+            /*}*/
+            /*cur_pos++;*/
+            /*temp_lino++;*/
+        /*} else if (c == 'K') {*/
+            /*cur_pos--;*/
+            /*cur_pos--;*/
+            /*[>[>while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {<]<]*/
+            /*while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {*/
+                /*cur_pos--;*/
+            /*}*/
+            /*cur_pos++;*/
+            /*temp_lino--;*/
         } else if (c == 127) {
-            gbuff_del(text);
-
+            gctl_del(gcontrol);
         } else if (c == 27) {
             c = getchar();
             if(c == 27) {
@@ -321,29 +372,36 @@ int main(void) {
             } else if (c== 91) {
                 c = getchar();
                 if(c == 68) {
-                    gbuff_shift(text, -1);
+                    gctl_left(gcontrol);
                 }
-                if(c == 67) {
-                    gbuff_shift(text, 1);
+                else if(c == 67) {
+                    gctl_right(gcontrol);
                 }
-
+                else if(c == 66) {
+                    gctl_down(gcontrol);
+                }
+                else if(c == 65) {
+                    gctl_up(gcontrol);
+                }
             } else {
                 continue;
             }
 
             // 68 67
         } else {
-            /*printf("%d", c);*/
-            gbuff_ins(text, c);
-            /*continue;*/
+            /*[>printf("%d", c);<]*/
+            gctl_ins(gcontrol, c);
+            /*[>continue;<]*/
         }
 
 
-        /*char * buffoffset = buf+cur_pos;*/
-        /*print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);*/
-        print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
-        /*printf("%d", c);*/
+        /*[>char * buffoffset = buf+cur_pos;<]*/
+        /*[>print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);<]*/
+        /*print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);*/
+        print_gcontrol_area(gcontrol, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
+        /*[>printf("%d", c);<]*/
     }
+
 
     return 0;
 }
