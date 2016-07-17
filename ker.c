@@ -5,9 +5,6 @@
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
 #include "gctl.c"
 
-/*char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";*/
-/*char asd[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";*/
-
 static struct termios origt, newt;
 
 typedef struct {
@@ -34,7 +31,8 @@ void setup_term_settings(void) {
     atexit(cleanup_term_settings);
 
     newt = origt;
-    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    newt.c_iflag &= ~(IXON);
 
     if(tcsetattr( STDIN_FILENO, TCSANOW, &newt) == -1) {
         printf("Failed to set up our terminal settings");
@@ -180,7 +178,7 @@ int main(void) {
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
     /*print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);*/
 
-    print_gcontrol_area(gcontrol, 0, 1, 1, win_dimen.cols, win_dimen.rows);
+    print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols+1, win_dimen.rows);
 
     int cur_pos = 0;
     while((c = getchar()) != '`') {
@@ -190,6 +188,10 @@ int main(void) {
             gctl_shift_draw_line(gcontrol, 1);
         } else if (c == 'K') {
             gctl_shift_draw_line(gcontrol, -1);
+        } else if (c == 3 || c == 24) { // CTRL C / CTRL X
+            break;
+        } else if (c == 19) { // CTRL S
+            gctl_write_to_file(gcontrol, "/tmp/textfile");
         } else if (c == 127) {
             gctl_del(gcontrol);
         } else if (c == 27) {
@@ -225,10 +227,11 @@ int main(void) {
         /*[>char * buffoffset = buf+cur_pos;<]*/
         /*[>print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);<]*/
         /*print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);*/
-        print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols, win_dimen.rows);
+        print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols+1, win_dimen.rows);
         /*[>printf("%d", c);<]*/
     }
 
+    gctl_free(gcontrol);
 
     return 0;
 }

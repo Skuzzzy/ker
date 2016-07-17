@@ -136,6 +136,10 @@ void gctl_del(gctl* gcontrol) {
 
 }
 
+void gctl_write_to_file(gctl* gcontrol, char* filename) {
+    gbuff_write_to_file(gcontrol->gbuffer, filename);
+}
+
 void gctl_shift_draw_line(gctl* gcontrol, int amount) {
     if(amount > 0) {
         //FIXME check to make sure we do not overrun the bottom
