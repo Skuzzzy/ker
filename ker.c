@@ -3,9 +3,10 @@
 #include <termios.h> //termios, TCSANOW, ECHO, ICANON
 #include <unistd.h> //STDIN_FILENO
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
+#include "gap.c"
 
 int temp_lino = 0;
-char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";
+/*char buffer[2057] = "dan\n\nhello\n\nworld\ntest\ntest";*/
 char asd[2056] = "hello world I need my money prontohello worldhello! \nYou ain't got cheese like a nacho\nWinner winner checkin dinner pull out my riiidde how much for one of those onwes! They look great how do I get one of those this line needs to be super long in order to forcing a wrap. DONE~!\n Tat Tat tat";
 
 static struct termios origt, newt;
@@ -61,6 +62,13 @@ void move_cursor_to(int x, int y) {
     printf("\e[%d;%dH", y, x);
 }
 
+void push_cursor_pos(void) {
+    printf("\e[s");
+}
+
+void pop_cursor_pos(void) {
+    printf("\e[u");
+}
 
 void update_cursor_pos(void) {
     fseek(stdin,0,SEEK_END); // Clobber stdin so that we can retrieve x and y values
@@ -136,6 +144,70 @@ void print_buffer_in_area(char * buffer, int s_x, int s_y, int e_x, int e_y) {
     fflush(stdout);
 }
 
+void print_gapbuffer_in_area(gbuff* gbuffer, int offset, int s_x, int s_y, int e_x, int e_y) {
+
+    clear_screen();
+    move_cursor_to(s_x,s_y);
+
+    int current_y = s_y;
+
+    int width = e_x - s_x;
+    /*printf("%d", width);*/
+    update_window_dimensions();
+
+
+    /*int bufferlen = 0;*/
+    /*while(buffer[bufferlen++] != '\0') {}*/
+    /*printf("%d", bufferlen);*/
+
+    int buffer_index = 0;
+    int break_index = 0;
+
+    int temptemp = temp_lino;
+
+    while(buffer_index < gbuffer->bufsize && current_y <= e_y) {
+        while((gbuffer->buffer[break_index+offset] != '\n' && gbuffer->buffer[break_index+offset] != '\0') || gbuff_within_gap(gbuffer, break_index+offset)) { break_index++; }
+        /*int newline_p = (buffer[break_index] == '\n');*/
+        /*Replace with proper print*/
+        /*printf("%d", buffer_index);*/
+        /*printf(" %d", print_index);*/
+        /*printf(" %d\n", break_index);*/
+        /*printf("%d, %d\n", buffer_index, print_index);*/
+
+        int expendable_chars = width;
+
+        printf("%d|", temptemp++);
+        expendable_chars -= 4;
+
+        for(int i=buffer_index; i < break_index; i++) {
+            if(i==gbuffer->gap_end) {
+                push_cursor_pos();
+            }
+            if(gbuff_within_gap(gbuffer, i+offset)) { putchar('_'); continue; }
+            /*if(gbuff_within_gap(gbuffer, i+offset)) { continue; }*/
+            if(expendable_chars <= 0) { break; }
+            putchar(gbuffer->buffer[i+offset]);
+            expendable_chars--;
+        }
+        if(break_index==gbuffer->gap_end) {
+            push_cursor_pos();
+        }
+        /*if(newline_p) {*/
+            /*putchar('\n');*/
+        /*}*/
+        /*getchar();*/
+
+        move_cursor_to(s_x, ++current_y);
+        buffer_index = ++break_index;
+    }
+
+    /*printf("%d, %d", current_y, e_y);*/
+
+    pop_cursor_pos();
+
+    fflush(stdout);
+}
+
 long slurp(char const* path, char **buf, int add_nul)
 {
     FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
@@ -150,6 +222,8 @@ int main(void) {
     setup_term_settings();
     update_window_dimensions();
 
+
+
     /*while((c=getchar()) != 0x1b) {*/
         /*clear_screen();*/
         /*putchar(c);*/
@@ -159,26 +233,31 @@ int main(void) {
     char *buf;
 
     file_size = slurp("ker.c", &buf, 0);
+
+    gbuff * text = gbuff_alloc(25);
+    gbuff_init(text, buf);
+    /*gbuff_shift(text, 10);*/
     /*buf = buffer;*/
 
     /*clear_screen();*/
     update_cursor_pos();
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
-    print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);
-
+    /*print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);*/
+    print_gapbuffer_in_area(text, 0, 1, 1, win_dimen.cols, win_dimen.rows);
     int cur_pos = 0;
-    while((c = getchar()) != 0x1b) {
+    while((c = getchar()) != '`') {
 
-        if(c == 'j') {
-            while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+        if(c == 'J') {
+            while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {
                 cur_pos++;
             }
             cur_pos++;
             temp_lino++;
-        } else if (c == 'k') {
+        } else if (c == 'K') {
             cur_pos--;
             cur_pos--;
-            while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {
+            /*while(buf[cur_pos] != '\n' && buf[cur_pos] != '\0') {*/
+            while((text->buffer[cur_pos] != '\n' && text->buffer[cur_pos] != '\0') || gbuff_within_gap(text, cur_pos)) {
                 cur_pos--;
             }
             cur_pos++;
@@ -186,13 +265,42 @@ int main(void) {
         /*} else if (c == 'c') {*/
             /*clear_screen();*/
             /*getchar();*/
+        } else if(c == 68) {
+            gbuff_shift(text, -1);
+        } else if(c == 67) {
+            gbuff_shift(text, 1);
+        } else if (c == 127) {
+            gbuff_del(text);
+
+        } else if (c == 27) {
+            c = getchar();
+            if(c == 27) {
+                break;
+            } else if (c== 91) {
+                c = getchar();
+                if(c == 68) {
+                    gbuff_shift(text, -1);
+                }
+                if(c == 67) {
+                    gbuff_shift(text, 1);
+                }
+
+            } else {
+                continue;
+            }
+
+            // 68 67
         } else {
-            continue;
+            /*printf("%d", c);*/
+            gbuff_ins(text, c);
+            /*continue;*/
         }
 
 
-        char * buffoffset = buf+cur_pos;
-        print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);
+        /*char * buffoffset = buf+cur_pos;*/
+        /*print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);*/
+        print_gapbuffer_in_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);
+        /*printf("%d", c);*/
     }
 
     return 0;
