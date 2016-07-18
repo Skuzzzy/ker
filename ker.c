@@ -3,7 +3,7 @@
 #include <termios.h> //termios, TCSANOW, ECHO, ICANON
 #include <unistd.h> //STDIN_FILENO
 #include <stdlib.h> // int atexit(void (*function)(void)), exit(int)
-#include "gctl.c"
+#include "drawinfo.c"
 
 static struct termios origt, newt;
 
@@ -92,7 +92,6 @@ void update_window_dimensions(void) {
 
 void print_gcontrol_area(gctl* gcontrol, int offset, int s_x, int s_y, int e_x, int e_y) {
 
-    clear_screen();
     move_cursor_to(s_x,s_y);
 
     int current_y = s_y;
@@ -131,10 +130,55 @@ void print_gcontrol_area(gctl* gcontrol, int offset, int s_x, int s_y, int e_x, 
     fflush(stdout);
 }
 
-
-long slurp(char const* path, char **buf, int add_nul)
+// http://stackoverflow.com/questions/3747086/reading-the-whole-text-file-into-a-char-array-in-c
+long slurp(char const* path, char **buf)
 {
-    FILE  *fp; size_t fsz; long   off_end; int    rc; /* Open the file */ fp = fopen(path, "rb"); if( NULL == fp ) { return -1L; } /* Seek to the end of the file */ rc = fseek(fp, 0L, SEEK_END); if( 0 != rc ) { return -1L; } /* Byte offset to the end of the file (size) */ if( 0 > (off_end = ftell(fp)) ) { return -1L; } fsz = (size_t)off_end; /* Allocate a buffer to hold the whole file */ *buf = malloc( fsz+(int)add_nul ); if( NULL == *buf ) { return -1L; } /* Rewind file pointer to start of file */ rewind(fp); /* Slurp file into buffer */ if( fsz != fread(*buf, 1, fsz, fp) ) { free(*buf); return -1L; } /* Close the file */ if( EOF == fclose(fp) ) { free(*buf); return -1L; } if( add_nul ) { /* Make sure the buffer is NUL-terminated, just in case */ buf[fsz] = '\0'; } /* Return the file size */ return (long)fsz;
+    FILE  *fp;
+    size_t fsz;
+    long   off_end;
+    int    rc;
+
+    /* Open the file */
+    fp = fopen(path, "rb");
+    if( NULL == fp ) {
+        return -1L;
+    }
+
+    /* Seek to the end of the file */
+    rc = fseek(fp, 0L, SEEK_END);
+    if( 0 != rc ) {
+        return -1L;
+    }
+
+    /* Byte offset to the end of the file (size) */
+    if( 0 > (off_end = ftell(fp)) ) {
+        return -1L;
+    }
+    fsz = (size_t)off_end;
+
+    /* Allocate a buffer to hold the whole file */
+    *buf = malloc( fsz );
+    if( NULL == *buf ) {
+        return -1L;
+    }
+
+    /* Rewind file pointer to start of file */
+    rewind(fp);
+
+    /* Slurp file into buffer */
+    if( fsz != fread(*buf, 1, fsz, fp) ) {
+        free(*buf);
+        return -1L;
+    }
+
+    /* Close the file */
+    if( EOF == fclose(fp) ) {
+        free(*buf);
+        return -1L;
+    }
+
+    /* Return the file size */
+    return (long)fsz;
 }
 
 int main(void) {
@@ -163,13 +207,16 @@ int main(void) {
         /*move_cursor_to(c-'a',c-'a');*/
     /*}*/
     long  file_size;
-    char *buf;
+    char* buf;
 
-    file_size = slurp("ker.c", &buf, 0);
+    file_size = slurp("ker.c", &buf);
 
     /*gbuff * text = gbuff_alloc(25);*/
     /*gbuff_init(text, buf);*/
     gctl* gcontrol = gctl_alloc(buf);
+    drinfo* dr_left = drinfo_alloc();
+    drinfo* dr_right = drinfo_alloc();
+    drinfo_shift_draw_line(dr_right, gcontrol, win_dimen.rows);
     /*gbuff_shift(text, 10);*/
     /*buf = buffer;*/
 
@@ -178,22 +225,28 @@ int main(void) {
     /*printf("%d %d", win_dimen.cols, win_dimen.rows);*/
     /*print_buffer_in_area(buf, 1, 1, win_dimen.cols, win_dimen.rows);*/
 
-    print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols+1, win_dimen.rows);
+    clear_screen();
+    print_gcontrol_area(gcontrol, dr_right->draw_offset, 82, 1, win_dimen.cols+1, win_dimen.rows);
+    print_gcontrol_area(gcontrol, dr_left->draw_offset, 1, 1, 80, win_dimen.rows);
 
     int cur_pos = 0;
     while((c = getchar()) != '`') {
 
         /*if (0) {*/
         if(c == 'J') {
-            gctl_shift_draw_line(gcontrol, 1);
+            int actual = drinfo_shift_draw_line(dr_left, gcontrol, 1);
+            drinfo_shift_draw_line(dr_right, gcontrol, actual);
         } else if (c == 'K') {
-            gctl_shift_draw_line(gcontrol, -1);
+            int actual = drinfo_shift_draw_line(dr_left, gcontrol, -1);
+            drinfo_shift_draw_line(dr_right, gcontrol, actual);
         } else if (c == 3 || c == 24) { // CTRL C / CTRL X
             break;
         } else if (c == 19) { // CTRL S
             gctl_write_to_file(gcontrol, "/tmp/textfile.c");
         } else if (c == 127) {
             gctl_del(gcontrol);
+            if(gcontrol->index < dr_left->draw_offset) { dr_left->draw_offset--; }
+            if(gcontrol->index < dr_right->draw_offset) { dr_right->draw_offset--; }
         } else if (c == 27) {
             c = getchar();
             if(c == 27) {
@@ -220,6 +273,10 @@ int main(void) {
         } else {
             /*[>printf("%d", c);<]*/
             gctl_ins(gcontrol, c);
+            if(gcontrol->index < dr_left->draw_offset) { dr_left->draw_offset++; }
+            if(gcontrol->index < dr_right->draw_offset) { dr_right->draw_offset++; }
+
+            // If the cursor position is before one of the craw cursors, they much be shifted
             /*[>continue;<]*/
         }
 
@@ -227,7 +284,11 @@ int main(void) {
         /*[>char * buffoffset = buf+cur_pos;<]*/
         /*[>print_buffer_in_area(buffoffset, 1, 1, win_dimen.cols, win_dimen.rows);<]*/
         /*print_gapbuffer_area(text, cur_pos, 1, 1, win_dimen.cols, win_dimen.rows);*/
-        print_gcontrol_area(gcontrol, gcontrol->draw_offset, 1, 1, win_dimen.cols+1, win_dimen.rows);
+        clear_screen();
+        print_gcontrol_area(gcontrol, dr_right->draw_offset, 82, 1, win_dimen.cols+1, win_dimen.rows);
+        print_gcontrol_area(gcontrol, dr_left->draw_offset, 1, 1, 80, win_dimen.rows);
+
+        /*printf("%d, %d", dr_right->draw_offset, gcontrol->index);*/
         /*[>printf("%d", c);<]*/
     }
 

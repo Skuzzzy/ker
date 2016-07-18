@@ -6,8 +6,6 @@ typedef struct {
     int col;
     int row;
     int index;
-
-    int draw_offset;
 } gctl;
 
 char gctl_dref(gctl* gcontrol, int index);
@@ -22,7 +20,6 @@ gctl* gctl_alloc(char* buffer) {
     gcontrol->row = 0;
     gcontrol->col = 0;
     gcontrol->index = 0;
-    gcontrol->draw_offset = 0;
     gcontrol->goal_col = gcontrol->col;
     return gcontrol;
 }
@@ -140,32 +137,6 @@ void gctl_write_to_file(gctl* gcontrol, char* filename) {
     gbuff_write_to_file(gcontrol->gbuffer, filename);
 }
 
-void gctl_shift_draw_line(gctl* gcontrol, int amount) {
-    if(amount > 0) {
-        //FIXME check to make sure we do not overrun the bottom
-        for(int repetition = 0; repetition < amount; repetition++) {
-            while((gctl_dref(gcontrol, gcontrol->draw_offset) != '\n')) {
-                gcontrol->draw_offset++;
-            }
-            gcontrol->draw_offset++;
-        }
-    }
-    else if (amount < 0) {
-        amount = -amount;
-        for(int repetition = 0; repetition < amount; repetition++) {
-            if(gcontrol->draw_offset > 0) {
-                gcontrol->draw_offset--; // Move back into the \n
-                while(gcontrol->draw_offset > 0 && gctl_dref(gcontrol, gcontrol->draw_offset - 1) != '\n') {
-                    gcontrol->draw_offset--;
-                }
-            }
-            else {
-                break;
-            }
-        }
-    }
-
-}
 
 char gctl_dref(gctl* gcontrol, int index) {
     // linear referencing of gbuffer that skips the gap
