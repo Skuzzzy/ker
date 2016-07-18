@@ -181,7 +181,7 @@ long slurp(char const* path, char **buf)
     return (long)fsz;
 }
 
-int main(void) {
+int main(int argc, char** argv) {
     char c;
 
     setup_term_settings();
@@ -191,32 +191,28 @@ int main(void) {
     /*c = getchar();*/
     /*printf("%d\n", (int)c);*/
     /*fflush(stdout);*/
-    /*c = getchar();*/
-    /*printf("%d\n", (int)c);*/
-    /*fflush(stdout);*/
-    /*c = getchar();*/
-    /*printf("%d\n", (int)c);*/
-    /*fflush(stdout);*/
-    /*c = getchar();*/
-    /*printf("%d\n", (int)c);*/
-    /*fflush(stdout);*/
 
-    /*while((c=getchar()) != 0x1b) {*/
-        /*clear_screen();*/
-        /*putchar(c);*/
-        /*move_cursor_to(c-'a',c-'a');*/
-    /*}*/
     long  file_size;
     char* buf;
 
-    file_size = slurp("ker.c", &buf);
+    if(argc < 2) {
+        printf("WE NEED THEM ARGUMENTS BRUH");
+        exit(-1);
+    }
+
+    file_size = slurp(argv[1], &buf);
+
+    if(file_size == -1L) {
+        buf = calloc(1, sizeof(char));
+        buf[0] = '\0';
+    }
 
     /*gbuff * text = gbuff_alloc(25);*/
     /*gbuff_init(text, buf);*/
     gctl* gcontrol = gctl_alloc(buf);
     drinfo* dr_left = drinfo_alloc();
     drinfo* dr_right = drinfo_alloc();
-    drinfo_shift_draw_line(dr_right, gcontrol, win_dimen.rows);
+    /*drinfo_shift_draw_line(dr_right, gcontrol, win_dimen.rows);*/
     /*gbuff_shift(text, 10);*/
     /*buf = buffer;*/
 
@@ -242,7 +238,7 @@ int main(void) {
         } else if (c == 3 || c == 24) { // CTRL C / CTRL X
             break;
         } else if (c == 19) { // CTRL S
-            gctl_write_to_file(gcontrol, "/tmp/textfile.c");
+            gctl_write_to_file(gcontrol, argv[1]);
         } else if (c == 127) {
             gctl_del(gcontrol);
             if(gcontrol->index < dr_left->draw_offset) { dr_left->draw_offset--; }

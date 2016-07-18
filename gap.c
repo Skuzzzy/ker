@@ -91,7 +91,8 @@ void gbuff_expand(gbuff* gbuffer) {
     if (tmp_buffer == NULL)
     {
         // OH SHIT ABORT ABORT, (Save user file and gtfo)
-        // FIXME
+        gbuff_write_to_file(gbuffer, "recovery_file.txt");
+        exit(-1);
     }
     else
     {
